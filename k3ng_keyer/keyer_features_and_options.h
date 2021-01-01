@@ -101,7 +101,7 @@
 // #define OPTION_RUSSIAN_LANGUAGE_SEND_CLI // Russian language CLI sending support (contributed by Павел Бирюков, UA1AQC)
 #define OPTION_DO_NOT_SEND_UNKNOWN_CHAR_QUESTION
 // #define OPTION_CMOS_SUPER_KEYER_IAMBIC_B_TIMING_ON_BY_DEFAULT
-// #define OPTION_SIDETONE_DIGITAL_OUTPUT_NO_SQUARE_WAVE
+#define OPTION_SIDETONE_DIGITAL_OUTPUT_NO_SQUARE_WAVE
 // #define FEATURE_SD_CARD_SUPPORT
 // #define FEATURE_SO2R_BASE           // SO2R Box base protocol extensions
 // #define FEATURE_SO2R_SWITCHES       // SO2R Box TX and RX switches

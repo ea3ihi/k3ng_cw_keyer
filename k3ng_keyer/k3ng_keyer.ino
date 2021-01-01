@@ -1345,7 +1345,9 @@ If you offer a hardware kit using this software, show your appreciation by sendi
 #include <stdio.h>
 #include "keyer_hardware.h"
 
-#if defined(ARDUINO_SAM_DUE)  
+#if defined(ESP_PLATFORM)
+  #include <EEPROM.h>
+#elif defined(ARDUINO_SAM_DUE)  
   #include <SPI.h>
   #include <Wire.h>
   #define tone toneDUE
@@ -1364,6 +1366,19 @@ If you offer a hardware kit using this software, show your appreciation by sendi
   #include <avr/wdt.h>
   #include <EEPROM.h>  
 #endif //ARDUINO_SAM_DUE
+
+#if defined(ARDUINO_TTGO_T1)
+  #include <TFT_eSPI.h>
+  #define FEATURE_DISPLAY
+  #define FONT_WIDTH 12
+  #define FONT_HEIGHT 12
+  TFT_eSPI lcd = TFT_eSPI(135, 240);
+  TFT_eSprite img = TFT_eSprite(&lcd);
+#else 
+  #define FONT_WIDTH 1
+  #define FONT_HEIGHT 1
+#endif //ARDUINO_TTGO_T1
+
 
 #if defined(HARDWARE_OPENCWKEYER_MK2)
   #include "keyer_features_and_options_opencwkeyer_mk2.h"
@@ -3415,7 +3430,7 @@ void service_display() {
         return;
       } else {
          x = 0;
-         lcd.setCursor(0,y);
+         lcd.setCursor(0, y * FONT_HEIGHT);
       }
     } else {
       if (lcd_scroll_buffer[y].charAt(x) > 0){
@@ -3431,7 +3446,9 @@ void service_display() {
       switch (lcd_status) {
         case LCD_CLEAR: lcd_clear(); break;
         case LCD_SCROLL_MSG:
-          lcd.clear();
+          #ifndef ARDUINO_TTGO_T1
+            lcd.clear();
+          #endif
           // for (x = 0;x < LCD_ROWS;x++){
           //   //clear_display_row(x);
           //   lcd.setCursor(0,x);
@@ -3452,7 +3469,9 @@ void service_display() {
         case LCD_SCROLL_MSG:
           if (lcd_scroll_buffer_dirty) { 
             if (lcd_scroll_flag) {
-              lcd.clear();
+              #ifndef ARDUINO_TTGO_T1
+                lcd.clear();
+              #endif
               lcd_scroll_flag = 0;
             }         
             // for (x = 0;x < LCD_ROWS;x++){
@@ -3504,7 +3523,9 @@ void display_scroll_print_char(char charin){
 
   if (lcd_status != LCD_SCROLL_MSG) {
     lcd_status = LCD_SCROLL_MSG;
-    lcd.clear();
+    #ifndef ARDUINO_TTGO_T1
+      lcd.clear();
+    #endif
   } 
 
   if (charin == ' '){
@@ -3559,8 +3580,12 @@ void display_scroll_print_char(char charin){
 //-------------------------------------------------------------------------------------------------------
 #ifdef FEATURE_DISPLAY
 void lcd_clear() {
-  lcd.clear();
-  lcd.noCursor();//sp5iou 20180328
+  #ifdef ARDUINO_TTGO_T1
+    lcd.fillScreen(TFT_BLUE);
+  #else
+    lcd.clear();
+    lcd.noCursor();//sp5iou 20180328  
+  #endif
  lcd_status = LCD_CLEAR;
 
 }
@@ -3569,15 +3594,20 @@ void lcd_clear() {
 #ifdef FEATURE_DISPLAY
 void lcd_center_print_timed(String lcd_print_string, byte row_number, unsigned int duration)
 {
-  lcd.noCursor();//sp5iou 20180328
+  #ifndef ARDUINO_TTGO_T1
+    lcd.noCursor();//sp5iou 20180328
+  #endif
+  
   if (lcd_status != LCD_TIMED_MESSAGE) {
     lcd_previous_status = lcd_status;
     lcd_status = LCD_TIMED_MESSAGE;
-    lcd.clear();
+    #ifndef ARDUINO_TTGO_T1
+      lcd.clear();
+    #endif
   } else {
     clear_display_row(row_number);
   }
-  lcd.setCursor(((LCD_COLUMNS - lcd_print_string.length())/2),row_number);
+  lcd.setCursor(((LCD_COLUMNS - lcd_print_string.length())/2) * FONT_WIDTH, row_number * FONT_HEIGHT);
   lcd.print(lcd_print_string);
   lcd_timed_message_clear_time = millis() + duration;
 }
@@ -3588,9 +3618,13 @@ void lcd_center_print_timed(String lcd_print_string, byte row_number, unsigned i
 #ifdef FEATURE_DISPLAY
 void clear_display_row(byte row_number)
 {
-  lcd.noCursor();//sp5iou 20180328
+  
+  #ifndef ARDUINO_TTGO_T1
+    lcd.noCursor();//sp5iou 20180328
+  #endif
+
   for (byte x = 0; x < LCD_COLUMNS; x++) {
-    lcd.setCursor(x,row_number);
+    lcd.setCursor(x * FONT_WIDTH, row_number * FONT_HEIGHT);
     lcd.print(" ");
   }
 }
@@ -6058,7 +6092,7 @@ void service_async_eeprom_write(){
     if (last_async_eeprom_write_status){ // we have an ansynchronous write to eeprom in progress
 
 
-      #if defined(_BOARD_PIC32_PINGUINO_) || defined(ARDUINO_SAMD_VARIANT_COMPLIANCE)
+      #if defined(ESP_PLATFORM) || defined(_BOARD_PIC32_PINGUINO_) || defined(ARDUINO_SAMD_VARIANT_COMPLIANCE)
         if (EEPROM.read(ee) != *p) {
           EEPROM.write(ee, *p);
         }
@@ -17968,8 +18002,15 @@ void ps2int_write() {
 
 void initialize_display(){
 
-  #ifdef FEATURE_DISPLAY    
-    #if defined(FEATURE_LCD_SAINSMART_I2C) || defined(FEATURE_LCD_I2C_FDEBRABANDER)
+  #ifdef FEATURE_DISPLAY
+
+    #ifdef ARDUINO_TTGO_T1
+      lcd.begin();
+      lcd.setRotation(3);
+      lcd.fillScreen(TFT_BLACK);//sets background
+      lcd.setTextColor(TFT_WHITE, TFT_BLACK);
+      lcd.setTextSize(2);
+    #elif defined(FEATURE_LCD_SAINSMART_I2C) || defined(FEATURE_LCD_I2C_FDEBRABANDER)
       lcd.begin();
       lcd.home();
     #else
@@ -17979,6 +18020,7 @@ void initialize_display(){
       lcd.setBacklight(lcdcolor);
     #endif //FEATURE_LCD_ADAFRUIT_I2C
 
+    
     #ifdef FEATURE_LCD_ADAFRUIT_BACKPACK 
       lcd.setBacklight(HIGH);
     #endif
@@ -18010,7 +18052,9 @@ void initialize_display(){
       lcd.createChar(5, empty); //        For some reason this one needs to display nothing - otherwise it will display in pauses on serial interface
       lcd.createChar(6, AA_capital); //   Danish, Norwegian, Swedish
       lcd.createChar(7, Ntilde); //       Spanish
-      lcd.clear(); // you have to ;o)
+      #ifndef ARDUINO_TTGO_T1
+        lcd.clear(); // you have to ;o)
+      #endif
     #endif //OPTION_DISPLAY_NON_ENGLISH_EXTENSIONS
 
      if (LCD_COLUMNS < 9) {
