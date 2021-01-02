@@ -1374,6 +1374,8 @@ If you offer a hardware kit using this software, show your appreciation by sendi
   #define FONT_HEIGHT 16
   #define LCDBACKGROUND_COLOR TFT_BLACK
   #define LCDFOREGROUND_COLOR TFT_WHITE
+  #define LCDSTATUSBACKGROUND_COLOR TFT_BLUE
+  #define LCDSTATUSFOREGROUND_COLOR TFT_YELLOW
   TFT_eSPI lcd = TFT_eSPI(135, 240);
   TFT_eSprite img = TFT_eSprite(&lcd);
 #else 
@@ -3419,6 +3421,7 @@ void service_display() {
     lcd.setCursor(0,0);
     y = 0;
     x = 0;
+    
     screen_refresh_status = SCREEN_REFRESH_IN_PROGRESS;
     return;
   }
@@ -3429,6 +3432,10 @@ void service_display() {
       if (y >= LCD_ROWS){
         screen_refresh_status = SCREEN_REFRESH_IDLE;
         lcd_scroll_buffer_dirty = 0;
+
+        #ifdef ARDUINO_TTGO_T1
+          ttgo_statusbar();
+        #endif
         return;
       } else {
          x = 0;
@@ -3492,7 +3499,20 @@ void service_display() {
 }
 #endif
 
+#ifdef ARDUINO_TTGO_T1
 
+void ttgo_statusbar(){
+
+  //lcd.fillScreen(LCDBACKGROUND_COLOR);//sets background
+  lcd.fillRect(0, 135- FONT_HEIGHT -2 , 240, 135, LCDSTATUSBACKGROUND_COLOR);
+  lcd.setTextColor(LCDSTATUSFOREGROUND_COLOR, LCDSTATUSBACKGROUND_COLOR);
+  
+  lcd.setCursor(0, 135 - FONT_HEIGHT);
+  lcd.print("WPM: ");
+  lcd.print(configuration.wpm);
+  lcd.setTextColor(LCDFOREGROUND_COLOR, LCDBACKGROUND_COLOR);
+}
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 
@@ -3584,6 +3604,7 @@ void display_scroll_print_char(char charin){
 void lcd_clear() {
   #ifdef ARDUINO_TTGO_T1
     lcd.fillScreen(LCDBACKGROUND_COLOR);
+    ttgo_statusbar();
   #else
     lcd.clear();
     lcd.noCursor();//sp5iou 20180328  
@@ -8772,7 +8793,7 @@ void check_buttons() {
   if (analogbuttontemp < 0 ) { // no button pressed.
     return;
   }
-
+  
   #ifdef FEATURE_MEMORIES
     repeat_memory = 255;
   #endif

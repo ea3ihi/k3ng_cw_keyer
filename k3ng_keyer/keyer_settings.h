@@ -40,7 +40,7 @@
 #define winkey_xon_threshold 10          // the number of chars in the buffer below which we deactivate XOFF
 #define default_memory_repeat_time 3000  // time in milliseconds
 #define LCD_COLUMNS 20
-#define LCD_ROWS 8
+#define LCD_ROWS 7
 #define lcd_i2c_address_mathertel_PCF8574 0x27             // I2C address of display for FEATURE_LCD_MATHERTEL_PCF8574
 #define lcd_i2c_address_fdebrander_lcd 0x27                // I2C address of display for FEATURE_LCD_I2C_FDEBRABANDER
 #define lcd_i2c_address_ydv1_lcd 0x27                      // I2C address of display for FEATURE_LCD_YDv1
