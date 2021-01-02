@@ -1345,7 +1345,7 @@ If you offer a hardware kit using this software, show your appreciation by sendi
 #include <stdio.h>
 #include "keyer_hardware.h"
 
-#if defined(ESP_PLATFORM)
+#if defined(ARDUINO_TTGO_T1)
   #include <EEPROM.h>
 #elif defined(ARDUINO_SAM_DUE)  
   #include <SPI.h>
@@ -1371,7 +1371,9 @@ If you offer a hardware kit using this software, show your appreciation by sendi
   #include <TFT_eSPI.h>
   #define FEATURE_DISPLAY
   #define FONT_WIDTH 12
-  #define FONT_HEIGHT 12
+  #define FONT_HEIGHT 16
+  #define LCDBACKGROUND_COLOR TFT_BLACK
+  #define LCDFOREGROUND_COLOR TFT_WHITE
   TFT_eSPI lcd = TFT_eSPI(135, 240);
   TFT_eSprite img = TFT_eSprite(&lcd);
 #else 
@@ -3581,7 +3583,7 @@ void display_scroll_print_char(char charin){
 #ifdef FEATURE_DISPLAY
 void lcd_clear() {
   #ifdef ARDUINO_TTGO_T1
-    lcd.fillScreen(TFT_BLUE);
+    lcd.fillScreen(LCDBACKGROUND_COLOR);
   #else
     lcd.clear();
     lcd.noCursor();//sp5iou 20180328  
@@ -17063,7 +17065,7 @@ int memory_end(byte memory_number) {
 
 void initialize_pins() {
   
-#if defined (ARDUINO_MAPLE_MINI)||defined(ARDUINO_GENERIC_STM32F103C) //sp5iou 20180329
+#if defined(ESP_PLATFORM) || defined(ARDUINO_MAPLE_MINI)||defined(ARDUINO_GENERIC_STM32F103C) //sp5iou 20180329
   pinMode (paddle_left, INPUT_PULLUP);
   pinMode (paddle_right, INPUT_PULLUP);
 #else
@@ -18007,8 +18009,8 @@ void initialize_display(){
     #ifdef ARDUINO_TTGO_T1
       lcd.begin();
       lcd.setRotation(3);
-      lcd.fillScreen(TFT_BLACK);//sets background
-      lcd.setTextColor(TFT_WHITE, TFT_BLACK);
+      lcd.fillScreen(LCDBACKGROUND_COLOR);//sets background
+      lcd.setTextColor(LCDFOREGROUND_COLOR, LCDBACKGROUND_COLOR);
       lcd.setTextSize(2);
     #elif defined(FEATURE_LCD_SAINSMART_I2C) || defined(FEATURE_LCD_I2C_FDEBRABANDER)
       lcd.begin();

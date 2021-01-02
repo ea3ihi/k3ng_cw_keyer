@@ -1,6 +1,6 @@
 // Initial and hardcoded settings
-#define initial_speed_wpm 26             // "factory default" keyer speed setting
-#define initial_command_mode_speed_wpm 20 // "factory default" command mode speed setting 
+#define initial_speed_wpm 12             // "factory default" keyer speed setting
+#define initial_command_mode_speed_wpm 12 // "factory default" command mode speed setting 
 #define initial_sidetone_freq 600        // "factory default" sidetone frequency setting
 #define sidetone_hz_limit_low 299
 #define sidetone_hz_limit_high 2001
@@ -39,8 +39,8 @@
 #define winkey_xoff_threshold 20         // the number of chars in the buffer when we begin sending XOFFs
 #define winkey_xon_threshold 10          // the number of chars in the buffer below which we deactivate XOFF
 #define default_memory_repeat_time 3000  // time in milliseconds
-#define LCD_COLUMNS 16
-#define LCD_ROWS 10
+#define LCD_COLUMNS 20
+#define LCD_ROWS 8
 #define lcd_i2c_address_mathertel_PCF8574 0x27             // I2C address of display for FEATURE_LCD_MATHERTEL_PCF8574
 #define lcd_i2c_address_fdebrander_lcd 0x27                // I2C address of display for FEATURE_LCD_I2C_FDEBRABANDER
 #define lcd_i2c_address_ydv1_lcd 0x27                      // I2C address of display for FEATURE_LCD_YDv1
