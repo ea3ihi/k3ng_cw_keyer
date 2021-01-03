@@ -3457,6 +3457,8 @@ void service_display() {
         case LCD_SCROLL_MSG:
           #ifndef ARDUINO_TTGO_T1
             lcd.clear();
+          #else
+            lcd_clear();
           #endif
           // for (x = 0;x < LCD_ROWS;x++){
           //   //clear_display_row(x);
@@ -3480,6 +3482,8 @@ void service_display() {
             if (lcd_scroll_flag) {
               #ifndef ARDUINO_TTGO_T1
                 lcd.clear();
+              #else
+                lcd_clear();
               #endif
               lcd_scroll_flag = 0;
             }         
@@ -3547,6 +3551,8 @@ void display_scroll_print_char(char charin){
     lcd_status = LCD_SCROLL_MSG;
     #ifndef ARDUINO_TTGO_T1
       lcd.clear();
+    #else
+      //lcd_clear();
     #endif
   } 
 
@@ -18088,7 +18094,7 @@ void initialize_display(){
         if (LCD_ROWS == 2) {
           lcd_center_print_timed(custom_startup_field, 1, 4000);    // display the custom field on the second line of the display, maximum field length is the number of columns
         } else if (LCD_ROWS > 2) {
-	        lcd_center_print_timed("hi", 1, 4000);                    // display 'hi' on the 2nd line anyway
+	        //lcd_center_print_timed("hi", 1, 4000);                    // display 'hi' on the 2nd line anyway
           lcd_center_print_timed(custom_startup_field, 2, 4000);    // display the custom field on the third line of the display, maximum field length is the number of columns
 	      }
       #else
