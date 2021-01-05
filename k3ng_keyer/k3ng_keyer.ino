@@ -19519,10 +19519,12 @@ void mqtt_callback (char* topic, byte* payload, unsigned int length) {   //callb
     {
       debug_serial_port->print((char)payload[i]);
     }*/
-    if (length == 2) {
+    if (length > 1) {
       if (payload[0] == 'K') {
-        send_char(payload[1], 1);
-        display_scroll_print_char(payload[1]);
+        for (int i = 1; i<length; i++){
+          send_char(payload[i], 0);
+          display_scroll_print_char(payload[i]);
+        }
       }
     }
   #endif
