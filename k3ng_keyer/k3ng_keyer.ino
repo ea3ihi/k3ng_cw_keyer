@@ -1383,6 +1383,7 @@ If you offer a hardware kit using this software, show your appreciation by sendi
   TFT_eSprite img = TFT_eSprite(&lcd);
   WiFiClient espWiFiClient;
   PubSubClient mqttClient(espWiFiClient); //lib required for mqtt
+  byte mac[6];
 #else 
   #define FONT_WIDTH 1
   #define FONT_HEIGHT 1
@@ -19491,6 +19492,7 @@ void initialize_ethernet(){
 void initialize_wifi(){
   #ifdef ARDUINO_TTGO_T1
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.macAddress(mac);
     int count = 0;
     
     while ( count < 300 && WiFi.status() != WL_CONNECTED) {
@@ -19519,9 +19521,14 @@ void mqtt_callback (char* topic, byte* payload, unsigned int length) {   //callb
     {
       debug_serial_port->print((char)payload[i]);
     }*/
-    if (length > 1) {
+    if (length > 3) {
       if (payload[0] == 'K') {
-        for (int i = 1; i<length; i++){
+
+        if (payload[1] == mac[1] && payload[2] == mac[0]) { //ignore own messages
+          return;
+        }
+      
+        for (int i = 3; i<length; i++){
           send_char(payload[i], 0);
           display_scroll_print_char(payload[i]);
         }
@@ -19571,10 +19578,12 @@ void mqtt_sendKey(char key) {
   #ifdef ARDUINO_TTGO_T1
     //debug_serial_port->print(">");
     //debug_serial_port->println(key);
-    byte payload[2];
+    byte payload[4];
     payload[0] = (byte) 'K';
-    payload[1] = (byte) key;
-    mqttClient.publish(MQTT_TOPIC_OUT, payload, 2);
+    payload[1] = mac[1];
+    payload[2] = mac[0];
+    payload[3] = (byte) key;
+    mqttClient.publish(MQTT_TOPIC_OUT, payload, 4);
   #endif
 }
 
