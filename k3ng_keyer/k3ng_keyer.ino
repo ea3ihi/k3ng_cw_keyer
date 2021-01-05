@@ -1347,6 +1347,9 @@ If you offer a hardware kit using this software, show your appreciation by sendi
 
 #if defined(ARDUINO_TTGO_T1)
   #include <EEPROM.h>
+  #include <WiFi.h>
+  #include "wifi_secrets.h"
+  #include <PubSubClient.h>
 #elif defined(ARDUINO_SAM_DUE)  
   #include <SPI.h>
   #include <Wire.h>
@@ -1378,6 +1381,8 @@ If you offer a hardware kit using this software, show your appreciation by sendi
   #define LCDSTATUSFOREGROUND_COLOR TFT_YELLOW
   TFT_eSPI lcd = TFT_eSPI(135, 240);
   TFT_eSprite img = TFT_eSprite(&lcd);
+  WiFiClient espWiFiClient;
+  PubSubClient mqttClient(espWiFiClient); //lib required for mqtt
 #else 
   #define FONT_WIDTH 1
   #define FONT_HEIGHT 1
@@ -2270,12 +2275,14 @@ void setup()
   initialize_usb();
   initialize_cw_keyboard();
   initialize_display();
+  initialize_wifi();
   initialize_ethernet();
   initialize_udp();
   initialize_web_server();
   initialize_sd_card();  
   initialize_debug_startup();
 
+  
 }
 
 // --------------------------------------------------------------------------------------------
@@ -2286,6 +2293,11 @@ void loop()
   // this is where the magic happens
   
 
+  
+  #ifdef ARDUINO_TTGO_T1
+    service_mqtt();
+  #endif
+    
   #ifdef OPTION_WATCHDOG_TIMER
     wdt_reset();
   #endif  //OPTION_WATCHDOG_TIMER
@@ -13429,6 +13441,9 @@ void service_paddle_echo()
 
           #ifndef OPTION_DISPLAY_NON_ENGLISH_EXTENSIONS
             display_scroll_print_char(byte(convert_cw_number_to_ascii(paddle_echo_buffer)));
+            #ifdef ARDUINO_TTGO_T1
+                mqtt_sendKey(convert_cw_number_to_ascii(paddle_echo_buffer));
+            #endif
           #else //OPTION_DISPLAY_NON_ENGLISH_EXTENSIONS
             ascii_temp = byte(convert_cw_number_to_ascii(paddle_echo_buffer));
             switch (ascii_temp){
@@ -13441,6 +13456,9 @@ void service_paddle_echo()
               case 209: ascii_temp = 7;break; // N-tilde (EA) 
             }
             display_scroll_print_char(ascii_temp);
+            #ifdef ARDUINO_TTGO_T1
+                mqtt_sendKey(ascii_temp);
+            #endif
           #endif //OPTION_DISPLAY_NON_ENGLISH_EXTENSIONS
         #endif //OPTION_PROSIGN_SUPPORT
       }
@@ -19469,6 +19487,93 @@ void initialize_ethernet(){
 }
 
 
+
+void initialize_wifi(){
+  #ifdef ARDUINO_TTGO_T1
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    int count = 0;
+    
+    while ( count < 300 && WiFi.status() != WL_CONNECTED) {
+      count++;
+      delay(100);
+      Serial.print(".");
+    }
+  
+    Serial.println();
+    Serial.print("WiFi connected with ip ");  
+    Serial.println(WiFi.localIP());
+    Serial.println();
+
+    mqtt_init();
+  #endif
+}
+
+
+void mqtt_callback (char* topic, byte* payload, unsigned int length) {   //callback includes topic and payload ( from which (topic) the payload is comming)
+  #ifdef ARDUINO_TTGO_T1
+    /*
+    debug_serial_port->print("Message arrived [");
+    debug_serial_port->print(topic);
+    debug_serial_port->print("] ");
+    for (int i = 0; i < length; i++)
+    {
+      debug_serial_port->print((char)payload[i]);
+    }*/
+    if (length == 2) {
+      if (payload[0] == 'K') {
+        send_char(payload[1], 1);
+        display_scroll_print_char(payload[1]);
+      }
+    }
+  #endif
+}
+
+void service_mqtt() {
+  #ifdef ARDUINO_TTGO_T1
+  mqttClient.loop();
+  #endif
+}
+
+void mqtt_init() {
+  #ifdef ARDUINO_TTGO_T1
+  mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+  mqttClient.setCallback(mqtt_callback);
+  mqtt_reconnect();
+  #endif
+}
+
+void mqtt_reconnect() {
+   #ifdef ARDUINO_TTGO_T1
+    
+    if (!mqttClient.connected()) {
+      Serial.println("Attempting MQTT connection...");
+      if (mqttClient.connect(MQTT_ID, MQTT_USER,MQTT_PASSWORD)) {
+        Serial.println("connected");
+        // Once connected, publish an announcement...
+        mqttClient.publish(MQTT_TOPIC_OUT, "CC");
+        // ... and resubscribe
+        mqttClient.subscribe(MQTT_TOPIC_IN);
+  
+      } else {
+        Serial.print("failed, rc=");
+        Serial.print(mqttClient.state());
+        Serial.println(" try again later");
+        
+      }
+    }
+  #endif
+}
+
+void mqtt_sendKey(char key) {
+  #ifdef ARDUINO_TTGO_T1
+    debug_serial_port->print(">");
+    debug_serial_port->println(key);
+    byte payload[2];
+    payload[0] = (byte) 'K';
+    payload[1] = (byte) key;
+    mqttClient.publish(MQTT_TOPIC_OUT, payload, 2);
+  #endif
+}
 
 //-------------------------------------------------------------------------------------------------------
 
