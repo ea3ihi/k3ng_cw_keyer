@@ -19530,6 +19530,7 @@ void mqtt_callback (char* topic, byte* payload, unsigned int length) {   //callb
 
 void service_mqtt() {
   #ifdef ARDUINO_TTGO_T1
+  mqtt_reconnect();
   mqttClient.loop();
   #endif
 }
@@ -19566,8 +19567,8 @@ void mqtt_reconnect() {
 
 void mqtt_sendKey(char key) {
   #ifdef ARDUINO_TTGO_T1
-    debug_serial_port->print(">");
-    debug_serial_port->println(key);
+    //debug_serial_port->print(">");
+    //debug_serial_port->println(key);
     byte payload[2];
     payload[0] = (byte) 'K';
     payload[1] = (byte) key;
