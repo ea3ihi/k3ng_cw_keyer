@@ -7960,6 +7960,13 @@ void command_mode() {
     paddle_echo_buffer = 0;
   #endif
 
+  /* clear screen after command mode exit
+  lcd_status = LCD_CLEAR;
+  for (int i =0; i < LCD_ROWS; i++) {
+    lcd_scroll_buffer[i] = "";
+  }
+  */
+  
   #ifdef OPTION_WATCHDOG_TIMER
     wdt_enable(WDTO_4S);
   #endif //OPTION_WATCHDOG_TIMER
@@ -8808,7 +8815,7 @@ void check_buttons() {
   long button_depress_time;
   byte paddle_was_hit = 0;
   byte previous_sidetone_mode = 0;
-
+  
   if (analogbuttontemp < 0 ) { // no button pressed.
     return;
   }
@@ -17111,9 +17118,10 @@ int memory_end(byte memory_number) {
 
 void initialize_pins() {
   
-#if defined(ESP_PLATFORM) || defined(ARDUINO_MAPLE_MINI)||defined(ARDUINO_GENERIC_STM32F103C) //sp5iou 20180329
+#if defined(ARDUINO_TTGO_T1) || defined(ARDUINO_MAPLE_MINI)||defined(ARDUINO_GENERIC_STM32F103C) //sp5iou 20180329
   pinMode (paddle_left, INPUT_PULLUP);
   pinMode (paddle_right, INPUT_PULLUP);
+  pinMode (analog_buttons_pin,INPUT);
 #else
   pinMode (paddle_left, INPUT);
   digitalWrite (paddle_left, HIGH);
@@ -18117,7 +18125,7 @@ void initialize_display(){
           lcd_center_print_timed(custom_startup_field, 2, 4000);    // display the custom field on the third line of the display, maximum field length is the number of columns
 	      }
       #else
-        lcd_center_print_timed("hi", 1, 4000);
+        //lcd_center_print_timed("hi", 1, 4000);
       #endif                                                        // OPTION_PERSONALIZED_STARTUP_SCREEN
       if (LCD_ROWS > 3) lcd_center_print_timed("V: " + String(CODE_VERSION), 3, 4000);      // display the code version on the fourth line of the display
     }

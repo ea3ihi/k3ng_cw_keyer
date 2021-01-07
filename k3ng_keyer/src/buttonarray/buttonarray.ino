@@ -2,9 +2,9 @@
 
 #include "buttonarray.h"
 
-#define ARRAY_PIN A3
-#define NB_BUTTONS 2
-#define ENCODER_PIN A1
+#define ARRAY_PIN 13
+#define NB_BUTTONS 5
+#define ENCODER_PIN 0
 
 
 int button_array_high_limit[NB_BUTTONS];
@@ -21,6 +21,11 @@ void setup() {
   delay(1000); 
   button_array.AddAll();
   encoder.AddAll();
+
+  while(1) {
+    int x = analogRead(ARRAY_PIN);
+    Serial.println(x);
+  }
 }
 
 void loop() {
