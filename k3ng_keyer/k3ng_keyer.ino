@@ -3572,6 +3572,15 @@ void display_scroll_print_char(char charin){
   if (charin == ' '){
     holding_space = 1;
     return;
+  } else if (charin == 0xFF) {
+    //clear buffers
+    column_pointer = 0;
+    row_pointer = 0;
+    holding_space = 1;
+    for (int i = 0; i<LCD_ROWS; i++) {
+      lcd_scroll_buffer[i]="";
+    }
+    return;
   }
 
   if (holding_space){   // ok, I admit this is a hack.  Hold on to spaces and don't scroll until the next char comes in...
@@ -7960,12 +7969,10 @@ void command_mode() {
     paddle_echo_buffer = 0;
   #endif
 
-  /* clear screen after command mode exit
+  //clear screen after command mode exit
   lcd_status = LCD_CLEAR;
-  for (int i =0; i < LCD_ROWS; i++) {
-    lcd_scroll_buffer[i] = "";
-  }
-  */
+  lcd_clear();
+  display_scroll_print_char(255);
   
   #ifdef OPTION_WATCHDOG_TIMER
     wdt_enable(WDTO_4S);
