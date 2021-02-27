@@ -1339,7 +1339,7 @@ If you offer a hardware kit using this software, show your appreciation by sendi
 
 */
 
-#define CODE_VERSION "2020.11.01.01"
+#define CODE_VERSION "2021.02.27.01"
 #define eeprom_magic_number 40               // you can change this number to have the unit re-initialize EEPROM
 
 #include <stdio.h>
@@ -1347,9 +1347,9 @@ If you offer a hardware kit using this software, show your appreciation by sendi
 
 #if defined(ARDUINO_TTGO_T1)
   #include <EEPROM.h>
-  #include <WiFi.h>
-  #include "wifi_secrets.h"
+  #include <WiFiManager.h>
   #include <PubSubClient.h>
+  #include "mqtt_settings.h"
 #elif defined(ARDUINO_SAM_DUE)  
   #include <SPI.h>
   #include <Wire.h>
@@ -1379,8 +1379,10 @@ If you offer a hardware kit using this software, show your appreciation by sendi
   #define LCDFOREGROUND_COLOR TFT_WHITE
   #define LCDSTATUSBACKGROUND_COLOR TFT_BLUE
   #define LCDSTATUSFOREGROUND_COLOR TFT_YELLOW
+  #define BUTTON_RESET_WIFI 35
   TFT_eSPI lcd = TFT_eSPI(135, 240);
   TFT_eSprite img = TFT_eSprite(&lcd);
+  WiFiManager wifiManager;
   WiFiClient espWiFiClient;
   PubSubClient mqttClient(espWiFiClient); //lib required for mqtt
   byte mac[6];
@@ -12294,7 +12296,7 @@ void serial_page_pause(PRIMARY_SERIAL_CLS * port_to_use,byte seconds_timeout){
 #if defined(FEATURE_SERIAL_HELP) && defined(FEATURE_SERIAL) && defined(FEATURE_COMMAND_LINE_INTERFACE)
 void print_serial_help(PRIMARY_SERIAL_CLS * port_to_use,byte paged_help){
 
-  port_to_use->println(F("\n\rK3NG Keyer Help\n\r"));
+  port_to_use->println(F("\n\rEA3IHI Keyer Help\n\r"));
   port_to_use->println(F("CLI commands:"));
   port_to_use->println(F("\\#\t\t: Play memory # x")); //Upper case to first letter only(WD9DMP)
   port_to_use->println(F("\\A\t\t: Iambic A"));
@@ -17960,7 +17962,7 @@ void initialize_serial_ports(){
 
     #if !defined(OPTION_SUPPRESS_SERIAL_BOOT_MSG) && defined(FEATURE_COMMAND_LINE_INTERFACE)
       if (primary_serial_port_mode == SERIAL_CLI) {
-        primary_serial_port->print(F("\n\rK3NG Keyer Version "));
+        primary_serial_port->print(F("\n\rEA3IHI Keyer Version "));
         primary_serial_port->write(CODE_VERSION);
         primary_serial_port->println();
         #if defined(FEATURE_SERIAL_HELP)
@@ -17984,7 +17986,7 @@ void initialize_serial_ports(){
       secondary_serial_port = SECONDARY_SERIAL_PORT;
       secondary_serial_port->begin(SECONDARY_SERIAL_PORT_BAUD);
       #if !defined(OPTION_SUPPRESS_SERIAL_BOOT_MSG)
-        secondary_serial_port->print(F("\n\rK3NG Keyer Version "));
+        secondary_serial_port->print(F("\n\rEA3IHI Keyer Version "));
         secondary_serial_port->write(CODE_VERSION);
         secondary_serial_port->println();
         #if defined(FEATURE_SERIAL_HELP)
@@ -18121,9 +18123,9 @@ void initialize_display(){
     #endif //OPTION_DISPLAY_NON_ENGLISH_EXTENSIONS
 
      if (LCD_COLUMNS < 9) {
-      lcd_center_print_timed("K3NGKeyr", 0, 4000);
+      lcd_center_print_timed("EA3IHIKey", 0, 4000);
     } else {
-      lcd_center_print_timed("K3NG Keyer", 0, 4000);
+      lcd_center_print_timed("EA3IHI Keyer", 0, 4000);
       #ifdef OPTION_PERSONALIZED_STARTUP_SCREEN
         if (LCD_ROWS == 2) {
           lcd_center_print_timed(custom_startup_field, 1, 4000);    // display the custom field on the second line of the display, maximum field length is the number of columns
@@ -19506,22 +19508,70 @@ void initialize_ethernet(){
 
 void initialize_wifi(){
   #ifdef ARDUINO_TTGO_T1
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    WiFi.macAddress(mac);
-    int count = 0;
+   
     
-    while ( count < 300 && WiFi.status() != WL_CONNECTED) {
-      count++;
-      delay(100);
-      Serial.print(".");
-    }
-  
-    Serial.println();
-    Serial.print("WiFi connected with ip ");  
-    Serial.println(WiFi.localIP());
-    Serial.println();
+  if (digitalRead(BUTTON_RESET_WIFI) == 0) 
+  {
+    Serial.println("Button pressed");
+      
+    int t = millis();
 
+    while (digitalRead(BUTTON_RESET_WIFI) == 0) {
+      delay(20);
+    
+      int delta = millis() - t;
+  
+      if (delta > 1000) {
+        Serial.println("Reset wifi settings");
+        lcd.setTextColor(TFT_WHITE, TFT_BLUE);
+        lcd.setTextSize(2);
+        lcd.setCursor(45,55,1);
+        lcd.print("Config WiFi");
+        // wifiManager.setAPCallback([this](WiFiManager* wifiManager)
+        wifiManager.setAPCallback([&](WiFiManager* wifiManager) {
+          Serial.printf("Entered config mode:ip=%s, ssid='%s'\n", 
+          WiFi.softAPIP().toString().c_str(), 
+          wifiManager->getConfigPortalSSID().c_str());
+          });
+        wifiManager.resetSettings();
+        
+        break;
+      }
+    }
+  }   
+
+  
+    // try to connect
+    if (!wifiManager.autoConnect()) {
+      Serial.printf("*** Failed to connect and hit timeout\n");
+      //ESP.restart();
+      //delay(1000);
+    }
+ 
+  
+
+    // TFT Output
+    lcd.setTextSize(1);
+    lcd.setCursor(10, 80, 2);
+    lcd.setTextColor(TFT_YELLOW, TFT_BLACK);
+    lcd.print("Connected to ");
+    //tft.setCursor(127,80);
+    lcd.print(WiFi.SSID());
+    lcd.setTextColor(TFT_YELLOW, TFT_BLACK);
+    lcd.setCursor(10, 100, 2);
+    lcd.print("IP ");
+    lcd.print(WiFi.localIP());
+    
+    //Serial print
+    Serial.print("Connected to ");
+    Serial.println(WiFi.SSID());
+    Serial.print("IP ");
+    Serial.println(WiFi.localIP());
+  
+    WiFi.macAddress(mac);
+    
     mqtt_init();
+    delay(2000);
   #endif
 }
 
@@ -19846,7 +19896,7 @@ void web_print_footer(EthernetClient client){
 void web_print_title(EthernetClient client){
 
 
-  web_client_println(client,F("<TITLE>K3NG CW Keyer</TITLE></HEAD><BODY>"));
+  web_client_println(client,F("<TITLE>EA3IHI CW Keyer</TITLE></HEAD><BODY>"));
 
 }
 #endif //FEATURE_WEB_SERVER
@@ -20152,7 +20202,7 @@ void web_print_page_main_menu(EthernetClient client){
 
   web_print_title(client);
 
-  web_client_println(client,F("<H1>K3NG CW Keyer</H1><hr><br><br><a href=\"ctrl\"\" class=\"internal\">Control</a><br><br>"));
+  web_client_println(client,F("<H1>EA3IHI CW Keyer</H1><hr><br><br><a href=\"ctrl\"\" class=\"internal\">Control</a><br><br>"));
   #if defined(FEATURE_MEMORIES)
     web_client_println(client,F("<a href=\"mem\"\" class=\"internal\">Memories</a><br><br>"));
   #endif //FEATURE_MEMORIES
