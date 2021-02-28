@@ -39,7 +39,7 @@
 #define winkey_xoff_threshold 20         // the number of chars in the buffer when we begin sending XOFFs
 #define winkey_xon_threshold 10          // the number of chars in the buffer below which we deactivate XOFF
 #define default_memory_repeat_time 3000  // time in milliseconds
-#define LCD_COLUMNS 20
+#define LCD_COLUMNS 30
 #define LCD_ROWS 7
 #define lcd_i2c_address_mathertel_PCF8574 0x27             // I2C address of display for FEATURE_LCD_MATHERTEL_PCF8574
 #define lcd_i2c_address_fdebrander_lcd 0x27                // I2C address of display for FEATURE_LCD_I2C_FDEBRABANDER
@@ -81,7 +81,7 @@
 #if defined(FEATURE_BUTTONS) &&  !defined(FEATURE_PS2_KEYBOARD) && !defined(FEATURE_USB_KEYBOARD) && !defined(FEATURE_COMMAND_LINE_INTERFACE) && !defined(FEATURE_WINKEY_EMULATION)
   #define number_of_memories byte(analog_buttons_number_of_buttons-1)
 #else
-  #define number_of_memories byte(12)
+  #define number_of_memories byte(4)
 #endif
 
 #ifdef FEATURE_CAPACITIVE_PADDLE_PINS

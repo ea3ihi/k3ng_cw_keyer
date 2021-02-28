@@ -1346,6 +1346,7 @@ If you offer a hardware kit using this software, show your appreciation by sendi
 #include "keyer_hardware.h"
 
 #if defined(ARDUINO_TTGO_T1)
+  #include <TFT_eSPI.h>
   #include <EEPROM.h>
   #include <WiFiManager.h>
   #include <PubSubClient.h>
@@ -1365,15 +1366,14 @@ If you offer a hardware kit using this software, show your appreciation by sendi
 #elif defined(ARDUINO_SAMD_VARIANT_COMPLIANCE)
   #include <FlashAsEEPROM.h>  
 #else
-  #include <avr/pgmspace.h>
-  #include <avr/wdt.h>
-  #include <EEPROM.h>  
+ #include <avr/pgmspace.h>
+ #include <avr/wdt.h>
+ #include <EEPROM.h>  
 #endif //ARDUINO_SAM_DUE
 
 #if defined(ARDUINO_TTGO_T1)
-  #include <TFT_eSPI.h>
   #define FEATURE_DISPLAY
-  #define FONT_WIDTH 12
+  #define FONT_WIDTH 8
   #define FONT_HEIGHT 16
   #define LCDBACKGROUND_COLOR TFT_BLACK
   #define LCDFOREGROUND_COLOR TFT_WHITE
@@ -2285,7 +2285,9 @@ void setup()
   initialize_sd_card();  
   initialize_debug_startup();
 
-  
+  #if defined(ARDUINO_TTGO_T1)
+    EEPROM.begin(512);
+  #endif
 }
 
 // --------------------------------------------------------------------------------------------
@@ -16088,10 +16090,11 @@ void serial_program_memory(PRIMARY_SERIAL_CLS * port_to_use)
     port_to_use->println(F("\n\rError"));
   }
 
-  #if defined(ARDUINO_SAMD_VARIANT_COMPLIANCE)
+  #if defined(ARDUINO_SAMD_VARIANT_COMPLIANCE) || defined(ARDUINO_TTGO_T1)
     EEPROM.commit();
+    port_to_use->println(F("\n\rCommit "));
   #endif
-
+  
 }
 
 #endif
@@ -17130,7 +17133,7 @@ void initialize_pins() {
 #if defined(ARDUINO_TTGO_T1) || defined(ARDUINO_MAPLE_MINI)||defined(ARDUINO_GENERIC_STM32F103C) //sp5iou 20180329
   pinMode (paddle_left, INPUT_PULLUP);
   pinMode (paddle_right, INPUT_PULLUP);
-  pinMode (analog_buttons_pin,INPUT);
+  pinMode (analog_buttons_pin, INPUT);
 #else
   pinMode (paddle_left, INPUT);
   digitalWrite (paddle_left, HIGH);
@@ -17764,7 +17767,7 @@ void initialize_keyer_state(){
     #if defined(HARDWARE_GENERIC_STM32F103C)
       memory_area_end = 254;
     #else
-      memory_area_end = 1024; // not sure if this is a valid assumption
+      memory_area_end = 5012; // not sure if this is a valid assumption
     #endif  
   #endif
 
@@ -18074,7 +18077,7 @@ void initialize_display(){
       lcd.setRotation(3);
       lcd.fillScreen(LCDBACKGROUND_COLOR);//sets background
       lcd.setTextColor(LCDFOREGROUND_COLOR, LCDBACKGROUND_COLOR);
-      lcd.setTextSize(2);
+      lcd.setTextSize(1);
     #elif defined(FEATURE_LCD_SAINSMART_I2C) || defined(FEATURE_LCD_I2C_FDEBRABANDER)
       lcd.begin();
       lcd.home();
@@ -19561,6 +19564,7 @@ void initialize_wifi(){
     lcd.setCursor(10, 100, 2);
     lcd.print("IP ");
     lcd.print(WiFi.localIP());
+    lcd.setTextSize(1);
     
     //Serial print
     Serial.print("Connected to ");
