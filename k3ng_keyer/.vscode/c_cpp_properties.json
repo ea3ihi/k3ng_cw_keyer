@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:\\Users\\David\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\**",
+                "C:\\Users\\David\\Documents\\Arduino\\libraries\\**",
+                "C:\\Users\\David\\Downloads\\arduino-1.8.13-windows\\arduino-1.8.13\\libraries\\**",
+                "C:\\Users\\David\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.4\\**"
+            ],
+            "forcedInclude": [],
+            "defines": [
+                "USBCON","ARDUINO_TTGO_T1","ESP32"
+            ],
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.23.28105/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
