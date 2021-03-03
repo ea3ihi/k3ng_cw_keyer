@@ -1373,8 +1373,8 @@ If you offer a hardware kit using this software, show your appreciation by sendi
 
 #if defined(ARDUINO_TTGO_T1)
   #define FEATURE_DISPLAY
-  #define FONT_WIDTH 8
-  #define FONT_HEIGHT 16
+  #define FONT_WIDTH 16
+  #define FONT_HEIGHT 26
   #define LCDBACKGROUND_COLOR TFT_BLACK
   #define LCDFOREGROUND_COLOR TFT_WHITE
   #define LCDSTATUSBACKGROUND_COLOR TFT_BLUE
@@ -3421,6 +3421,8 @@ void check_sleep(){
 #ifdef FEATURE_DISPLAY
 void service_display() {
 
+  lcd.setTextSize(2);
+  
   #ifdef DEBUG_LOOP
   debug_serial_port->println(F("loop: entering service_display"));
   #endif    
@@ -3460,6 +3462,9 @@ void service_display() {
       }
     } else {
       if (lcd_scroll_buffer[y].charAt(x) > 0){
+        
+        //fixed width    
+        lcd.setCursor(x * FONT_WIDTH, y * FONT_HEIGHT);
         lcd.print(lcd_scroll_buffer[y].charAt(x));
       }
       x++;
@@ -3523,15 +3528,17 @@ void service_display() {
 #ifdef ARDUINO_TTGO_T1
 
 void ttgo_statusbar(){
-
+  
   //lcd.fillScreen(LCDBACKGROUND_COLOR);//sets background
-  lcd.fillRect(0, 135- FONT_HEIGHT -2 , 240, 135, LCDSTATUSBACKGROUND_COLOR);
+  lcd.setTextSize(1);
+  lcd.fillRect(0, 135 - lcd.fontHeight() -2 , 240, 135, LCDSTATUSBACKGROUND_COLOR);
   lcd.setTextColor(LCDSTATUSFOREGROUND_COLOR, LCDSTATUSBACKGROUND_COLOR);
   
-  lcd.setCursor(0, 135 - FONT_HEIGHT);
+  lcd.setCursor(0, 135 - lcd.fontHeight());
   lcd.print("WPM: ");
   lcd.print(configuration.wpm);
   lcd.setTextColor(LCDFOREGROUND_COLOR, LCDBACKGROUND_COLOR);
+  lcd.setTextSize(2);
 }
 #endif
 
