@@ -3669,7 +3669,7 @@ void lcd_center_print_timed(String lcd_print_string, byte row_number, unsigned i
   } else {
     clear_display_row(row_number);
   }
-  lcd.setCursor(((LCD_COLUMNS - lcd_print_string.length())/2) * FONT_WIDTH, row_number * FONT_HEIGHT);
+  lcd.setCursor((lcd.width() - lcd.textWidth(lcd_print_string.c_str()))/2, row_number * lcd.fontHeight());
   lcd.print(lcd_print_string);
   lcd_timed_message_clear_time = millis() + duration;
 }
@@ -18146,7 +18146,7 @@ void initialize_display(){
       #else
         //lcd_center_print_timed("hi", 1, 4000);
       #endif                                                        // OPTION_PERSONALIZED_STARTUP_SCREEN
-      if (LCD_ROWS > 3) lcd_center_print_timed("V: " + String(CODE_VERSION), 3, 4000);      // display the code version on the fourth line of the display
+      if (LCD_ROWS > 3) lcd_center_print_timed("V: " + String(CODE_VERSION), 2, 4000);      // display the code version on the fourth line of the display
     }
   #endif //FEATURE_DISPLAY
 
